@@ -1,4 +1,3 @@
-
 import com.android.uiautomator.core.UiDevice;
 import com.android.uiautomator.core.UiObject;
 import com.android.uiautomator.core.UiObjectNotFoundException;
@@ -10,7 +9,32 @@ public class BasicTests extends UiAutomatorTestCase {
 
     private final static String SILENTZONE_PACKAGE_NAME = "ca.silentzone.silentzone";
     UiDevice uiDevice;
-    Log l;
+
+    // Logging variables
+    private Log l;
+    /**
+     * Used by logging class to identify a TAG for logcat. Should be changed by
+     * every method that uses logging
+     */
+    String TAG = "Basic Tests";
+
+    // Some basic UiObjects
+    /**
+     * Pause button in action bar<br>
+     * Won't be present if play button is
+     */
+    UiObject pause;
+    /**
+     * Play button in action bar.<br>
+     * Won't be present if pause button is.
+     */
+    UiObject play;
+    /** Refresh button in action bar */
+    UiObject refresh;
+    /** Add zone button in action bar */
+    UiObject add;
+    /** Options button in action bar */
+    UiObject options;
 
     protected void setUp() {
         uiDevice = getUiDevice();
@@ -18,6 +42,7 @@ public class BasicTests extends UiAutomatorTestCase {
     }
 
     public void stestOpenApp() throws UiObjectNotFoundException {
+        TAG = "Test Open App";
         // Make sure were on the home screen
         uiDevice.pressHome();
 
@@ -33,7 +58,7 @@ public class BasicTests extends UiAutomatorTestCase {
             UiObject appsTab = new UiObject(new UiSelector().text("Apps"));
             appsTab.click();
         } catch (UiObjectNotFoundException e) {
-            l.log("Launcher", "Device was not using a launcher with an apps tab");
+            l.log(TAG, "Device was not using a launcher with an apps tab");
         }
 
         // Next, in the apps tabs, we can simulate a user swiping until
@@ -53,29 +78,61 @@ public class BasicTests extends UiAutomatorTestCase {
         settingsApp.clickAndWaitForNewWindow();
 
         // Validate that the package name is the expected one
-        checkSilentZoneOpen();
+        checkSilentZoneOpen(TAG);
     }
 
     /**
      * Checks if the silentzone application is currently open by looking for a
      * UiObject with the package name of "ca.silentzone.silentzone". Will fail
      * test if it cannot find one.
+     * 
+     * @param returnTAG the TAG to set upon completion of this method
      */
-    public void checkSilentZoneOpen() {
+    private void checkSilentZoneOpen(String returnTAG) {
+        TAG = "Check SilentZone Open";
         UiObject silentZoneValidation = new UiObject(
                 new UiSelector().packageName(SILENTZONE_PACKAGE_NAME));
-        assertTrue("Unable to detect SilentZone", silentZoneValidation.exists());
+        if (!silentZoneValidation.exists()) {
+            l.log(TAG, "Unable to detect a SilentZone object");
+        }
+        // assertTrue("Unable to detect SilentZone",
+        // silentZoneValidation.exists());
     }
 
     /**
-     * Goes through the array of UiObjects and makes sure they exist. Will fail
-     * test if they don't exist
-     * @param objects the array of objects to check
+     * Checks if the action bar buttons exist. These buttons are pause, play,
+     * refresh, add, and options<br>
+     * Note that either pause or play buttons will exist, but not both
+     * 
+     * @param returnTag the TAG to reset upon completion of this method
      */
-    public void checkUiObjectsExist(UiObject[] objects) {
-        for(UiObject o : objects){
-            assertTrue("Unable to detect a UiObject", o.exists());
+    private void checkActionBarButtonsExists(String returnTag) {
+        TAG = "Check ActionBar Buttons";
+        if ((pause == null) || !pause.exists()) {
+            l.log(TAG, "Pause button doesn't exist");
         }
+
+        if ((play == null) || !play.exists()) {
+            l.log(TAG, "Play button doesn't exist");
+        }
+
+        if ((pause != null) && (play != null) && (play.exists() && pause.exists())) {
+            l.log(TAG, "Both play and pause button exist...");
+        }
+
+        if ((refresh == null) || !refresh.exists()) {
+            l.log(TAG, "Refresh button doesn't exist");
+        }
+
+        if ((add == null) || !add.exists()) {
+            l.log(TAG, "Add button doesn't exist");
+        }
+
+        if ((options == null) || !options.exists()) {
+            l.log(TAG, "Options button doesn't exist");
+        }
+
+        TAG = returnTag;
     }
 
     public void testButtons() {
@@ -85,30 +142,114 @@ public class BasicTests extends UiAutomatorTestCase {
          * action bar
          */
 
+        // Set up that tag
+        TAG = "Test All Buttons";
+
         // Make sure we're in the right app
-        checkSilentZoneOpen();
+        checkSilentZoneOpen(TAG);
 
         // Make some objects
-        UiObject play, pause, refresh, add, options;
+        play = new UiObject(new UiSelector().description("Play"));
         pause = new UiObject(new UiSelector().description("Pause"));
         refresh = new UiObject(new UiSelector().description("Refresh Zone"));
         add = new UiObject(new UiSelector().description("Add Zone"));
         options = new UiObject(new UiSelector().description("More options"));
 
-        
         // Make sure they exist
-        UiObject[] objectsPause = {pause, refresh, add, options};
-        checkUiObjectsExist(objectsPause);
-        
+        checkActionBarButtonsExists(TAG);
+
         // Press pause button
         try {
             pause.click();
         } catch (UiObjectNotFoundException e) {
-           l.log("Test Buttons", "Couldn't find pause button");
+            l.log(TAG, "Couldn't find pause button");
+        }
+
+        checkActionBarButtonsExists(TAG);
+
+        // Press the refresh button
+        try {
+            refresh.click();
+        } catch (UiObjectNotFoundException e) {
+            l.log(TAG, "Couldn't find refresh button");
+        }
+
+        checkActionBarButtonsExists(TAG);
+
+        // Press the add button
+        try {
+            if (!add.clickAndWaitForNewWindow()) {
+                l.log(TAG, "Nothing happened when we clicked add");
+            }
+            // In the add activity, press back button to go back to the main
+            // activity
+            uiDevice.pressBack();
+            // Make sure we're still in silentzone
+            checkSilentZoneOpen(TAG);
+        } catch (UiObjectNotFoundException e) {
+            l.log(TAG, "Couldn't find add button");
+        }
+
+        checkActionBarButtonsExists(TAG);
+
+        // Press the options button
+        try {
+            options.click();
+        } catch (UiObjectNotFoundException e) {
+            l.log(TAG, "Couldn't find the options button");
+        }
+
+        // Check if menu pops up
+        UiObject settings = new UiObject(new UiSelector().text("Settings"));
+        UiObject quit = new UiObject(new UiSelector().text("Quit"));
+
+        if ((settings == null) || !settings.exists()) {
+            l.log(TAG, "Couldn't find settings button");
+        }
+        if ((quit == null) || !quit.exists()) {
+            l.log(TAG, "Couldn't find Quit button");
+        }
+
+        // TODO: Put this in its own method
+        // Enter settings
+        try {
+            if (!settings.clickAndWaitForNewWindow()) {
+                l.log(TAG, "Nothing happened when we clicked settings");
+            }
+        } catch (UiObjectNotFoundException e) {
+            l.log(TAG, "Couldn't find settings button");
+        }
+
+        // Return with back button
+        uiDevice.pressBack();
+        // Hopefully we're in the right place
+        checkSilentZoneOpen(TAG);
+        checkActionBarButtonsExists(TAG);
+
+        // Enter settings
+        try {
+            options.click();
+            if (!settings.clickAndWaitForNewWindow()) {
+                l.log(TAG, "Nothing happened when we clicked settings");
+            }
+        } catch (UiObjectNotFoundException e) {
+            l.log(TAG, "Couldn't find options or settings");
+        }
+
+        // Return with action bar thing
+        UiObject returnWithActionBar = new UiObject(new UiSelector().text("SilentZone").resourceId(
+                "android:id/action_bar_title"));
+        // Return to main activity
+        try {
+            if (!returnWithActionBar.clickAndWaitForNewWindow()) {
+                l.log(TAG, "Nothing happened when we clicked the silentzone actionbar");
+            }
+        } catch (UiObjectNotFoundException e) {
+            l.log(TAG, "Couldn't find Action bar return to main activity button");
         }
         
-        play = new UiObject(new UiSelector().description("Play"));
-        UiObject[] objectsPlay = {play, refresh, add, options};
-        checkUiObjectsExist(objectsPlay);
+        // Make sure we're in the right place
+        checkSilentZoneOpen(TAG);
+        checkActionBarButtonsExists(TAG);
     }
 }
