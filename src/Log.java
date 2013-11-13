@@ -1,5 +1,5 @@
 public class Log {
-
+    
     private static Log l = null;
     
     public static Log getInstance(){
