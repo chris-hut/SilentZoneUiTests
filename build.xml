@@ -88,5 +88,19 @@
     -->
     <!-- version-tag: VERSION_TAG -->
     <import file="${sdk.dir}/tools/ant/uibuild.xml" />
+    
+    <!-- Pushes the Newly made jar onto the device -->
+    <target name="push" depends="build" description="Pushes bin/SilentZoneUiTests.jar onto the device into /data/local/tmp">
+    	<exec executable="adb" failonerror="true">
+    		<arg line="push bin/SilentZoneUiTests.jar /data/local/tmp"/>
+    	</exec>
+    </target>
+    
+    <!-- Runs the BasicTests Suite -->
+    <target name="basic" depends="push" description="Runs the basic tests suite">
+    	<exec executable="adb" failonerror="true">
+    		<arg line="shell uiautomator runtest SilentZoneUiTests.jar -c BasicTests"/>
+    	</exec>
+    </target>
 
 </project>
