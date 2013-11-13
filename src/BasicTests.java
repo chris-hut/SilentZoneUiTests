@@ -158,17 +158,30 @@ public class BasicTests extends UiAutomatorTestCase {
         // Make sure they exist
         checkActionBarButtonsExists(TAG);
 
-        // Press pause button
-        try {
-            pause.click();
-        } catch (UiObjectNotFoundException e) {
-            l.log(TAG, "Couldn't find pause button");
+        // Press pause/play button
+        if (pause.exists()) {
+            try {
+                l.log(TAG, "About to click pause button");
+                pause.click();
+            } catch (UiObjectNotFoundException e) {
+                l.log(TAG, "Couldn't find pause button");
+            }
+        } else if (play.exists()){
+            try {
+                l.log(TAG, "About to click play button");
+                pause.click();
+            } catch (UiObjectNotFoundException e) {
+                l.log(TAG, "Couldn't find play button");
+            }
+        } else {
+            l.log(TAG, "Couldn't find a play or pause button");
         }
 
         checkActionBarButtonsExists(TAG);
 
         // Press the refresh button
         try {
+            l.log(TAG, "About to click refresh button");
             refresh.click();
         } catch (UiObjectNotFoundException e) {
             l.log(TAG, "Couldn't find refresh button");
@@ -178,6 +191,7 @@ public class BasicTests extends UiAutomatorTestCase {
 
         // Press the add button
         try {
+            l.log(TAG, "About to click add button");
             if (!add.clickAndWaitForNewWindow()) {
                 l.log(TAG, "Nothing happened when we clicked add");
             }
@@ -194,6 +208,7 @@ public class BasicTests extends UiAutomatorTestCase {
 
         // Press the options button
         try {
+            l.log(TAG, "About to click options menu button");
             options.click();
         } catch (UiObjectNotFoundException e) {
             l.log(TAG, "Couldn't find the options button");
@@ -247,9 +262,20 @@ public class BasicTests extends UiAutomatorTestCase {
         } catch (UiObjectNotFoundException e) {
             l.log(TAG, "Couldn't find Action bar return to main activity button");
         }
-        
+
         // Make sure we're in the right place
         checkSilentZoneOpen(TAG);
         checkActionBarButtonsExists(TAG);
+
+        // Quit now!
+        try {
+            options.click();
+            quit.click();
+        } catch (UiObjectNotFoundException e) {
+            l.log(TAG, "Couldn't quit");
+        }
+
+        // Shouldn't be able to find any silentzone objects now
+        checkSilentZoneOpen(TAG);
     }
 }
