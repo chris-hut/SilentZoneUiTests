@@ -12,6 +12,12 @@ public class BasicTests extends UiAutomatorTestCase {
 
     // Logging variables
     private Log l;
+
+    /**
+     * The max number of times we're going to swipe while looking for the
+     * SilentZone App.
+     */
+    private static final int MAX_APP_PAGES = 10;
     /**
      * Used by logging class to identify a TAG for logcat. Should be changed by
      * every method that uses logging
@@ -39,9 +45,14 @@ public class BasicTests extends UiAutomatorTestCase {
     protected void setUp() {
         uiDevice = getUiDevice();
         l = Log.getInstance();
+        try {
+            openApp();
+        } catch (UiObjectNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
-    public void stestOpenApp() throws UiObjectNotFoundException {
+    public void openApp() throws UiObjectNotFoundException {
         TAG = "Test Open App";
         // Make sure were on the home screen
         uiDevice.pressHome();
@@ -52,11 +63,15 @@ public class BasicTests extends UiAutomatorTestCase {
 
         /*
          * Since were on 4.4 with Google Experience Launcher we don't have no
-         * app drawer but let's press it just for fun
+         * app drawer but you can press it just for fun
          */
         try {
-            UiObject appsTab = new UiObject(new UiSelector().text("Apps"));
-            appsTab.click();
+            /*
+             * UiObject appsTab = new UiObject(new UiSelector().text("Apps"));
+             * appsTab.click();
+             */
+            if (false)
+                throw new UiObjectNotFoundException("k");
         } catch (UiObjectNotFoundException e) {
             l.log(TAG, "Device was not using a launcher with an apps tab");
         }
@@ -72,10 +87,20 @@ public class BasicTests extends UiAutomatorTestCase {
 
         // Create a UiSelector to find the Settings app and simulate
         // a user click to launch the app.
-        UiObject settingsApp = appViews.getChildByText(new UiSelector()
-                .className(android.widget.TextView.class.getName()),
-                "SilentZone");
-        settingsApp.clickAndWaitForNewWindow();
+        UiObject silentZoneApp = new UiObject(
+                new UiSelector().className(android.widget.TextView.class.getName()).text(
+                        "SilentZone"));
+        /*
+         * appViews.getChildByText(new UiSelector()
+         * .className(android.widget.TextView.class.getName()), "SilentZone");
+         */
+        for (int i = 0; i < MAX_APP_PAGES; i++) {
+            if (silentZoneApp.exists()) {
+                silentZoneApp.clickAndWaitForNewWindow();
+                break;
+            }
+            appViews.scrollForward();
+        }
 
         // Validate that the package name is the expected one
         checkSilentZoneOpen(TAG);
@@ -88,13 +113,15 @@ public class BasicTests extends UiAutomatorTestCase {
      * 
      * @param returnTAG the TAG to set upon completion of this method
      */
-    private void checkSilentZoneOpen(String returnTAG) {
+    private boolean checkSilentZoneOpen(String returnTAG) {
         TAG = "Check SilentZone Open";
         UiObject silentZoneValidation = new UiObject(
                 new UiSelector().packageName(SILENTZONE_PACKAGE_NAME));
         if (!silentZoneValidation.exists()) {
             l.log(TAG, "Unable to detect a SilentZone object");
+            return false;
         }
+        return true;
         // assertTrue("Unable to detect SilentZone",
         // silentZoneValidation.exists());
     }
@@ -166,7 +193,7 @@ public class BasicTests extends UiAutomatorTestCase {
             } catch (UiObjectNotFoundException e) {
                 l.log(TAG, "Couldn't find pause button");
             }
-        } else if (play.exists()){
+        } else if (play.exists()) {
             try {
                 l.log(TAG, "About to click play button");
                 pause.click();
@@ -199,7 +226,9 @@ public class BasicTests extends UiAutomatorTestCase {
             // activity
             uiDevice.pressBack();
             // Make sure we're still in silentzone
-            checkSilentZoneOpen(TAG);
+            if (!checkSilentZoneOpen(TAG)) {
+                fail("We're no longer in the silentZone App");
+            }
         } catch (UiObjectNotFoundException e) {
             l.log(TAG, "Couldn't find add button");
         }
@@ -238,7 +267,9 @@ public class BasicTests extends UiAutomatorTestCase {
         // Return with back button
         uiDevice.pressBack();
         // Hopefully we're in the right place
-        checkSilentZoneOpen(TAG);
+        if (!checkSilentZoneOpen(TAG)) {
+            fail("We're no longer in the silentZone App");
+        }
         checkActionBarButtonsExists(TAG);
 
         // Enter settings
@@ -264,7 +295,9 @@ public class BasicTests extends UiAutomatorTestCase {
         }
 
         // Make sure we're in the right place
-        checkSilentZoneOpen(TAG);
+        if (!checkSilentZoneOpen(TAG)) {
+            fail("We're no longer in the silentZone App");
+        }
         checkActionBarButtonsExists(TAG);
 
         // Quit now!
@@ -276,6 +309,40 @@ public class BasicTests extends UiAutomatorTestCase {
         }
 
         // Shouldn't be able to find any silentzone objects now
-        checkSilentZoneOpen(TAG);
+        if (checkSilentZoneOpen(TAG)) {
+            fail("We didn't actually quit");
+        }
+    }
+
+    private static class Log {
+
+        private static Log l = null;
+
+        public static Log getInstance() {
+            if (l == null) {
+                l = new Log();
+            }
+            return l;
+        }
+
+        /**
+         * Logs the message to system.out
+         * 
+         * @param msg the message to log
+         */
+        public void log(String msg) {
+            System.out.println(msg);
+        }
+
+        /**
+         * Logs the message to system.out as well as logcat
+         * 
+         * @param tag the logcat tag
+         * @param msg the message to log
+         */
+        public void log(String tag, String msg) {
+            System.out.println(msg);
+            android.util.Log.d(tag, msg);
+        }
     }
 }
