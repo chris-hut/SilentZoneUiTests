@@ -78,7 +78,7 @@ public class BasicTests extends UiAutomatorTestCase {
         TAG = returnTag;
     }
 
-    public void testButtons() {
+    public void testSmokeButtons() {
         /*
          * Buttons available on home screen have content descriptions of: Pause,
          * Refresh Zone, Add Zone, and More options. and are located on the

@@ -1,3 +1,5 @@
+import android.os.RemoteException;
+
 import com.android.uiautomator.core.UiDevice;
 import com.android.uiautomator.core.UiObject;
 import com.android.uiautomator.core.UiObjectNotFoundException;
@@ -90,4 +92,51 @@ public class Utils extends UiAutomatorTestCase {
         // silentZoneValidation.exists());
     }
 
+    public static void performTutorial(UiDevice device) {
+        UiObject options, settings;
+        options = new UiObject(new UiSelector().description("More options").className(
+                android.widget.ImageButton.class));
+        try {
+            options.click();
+        } catch (UiObjectNotFoundException e) {
+            Log.log(TAG, "Couldn't find options");
+        }
+
+        settings = new UiObject(new UiSelector().text("Settings").resourceId("android:id/title"));
+        try {
+            settings.click();
+            device.pressBack();
+        } catch (UiObjectNotFoundException e) {
+            Log.log(TAG, "Couldn't find settings");
+        }
+
+        UiObject addZone = new UiObject(new UiSelector().description("Add Zone").resourceId(
+                "ca.silentzone.silentzone:id/add_zone_image_button"));
+        try {
+            addZone.clickAndWaitForNewWindow();
+            device.pressBack();
+        } catch (UiObjectNotFoundException e) {
+            Log.log(TAG, "Coudln't find add zone button");
+        }
+
+        UiObject playpause = new UiObject(new UiSelector().resourceId(
+                "ca.silentzone.silentzone:id/pause_resume_main"));
+
+        try {
+            playpause.click();
+
+            playpause.click();
+
+        } catch (UiObjectNotFoundException e) {
+            Log.log(TAG, "Couldn't find play/pause buttons");
+        }
+
+        UiObject refresh = new UiObject(new UiSelector().description("Refresh Zone").resourceId(
+                "ca.silentzone.silentzone:id/refresh_current_zone"));
+        try {
+            refresh.click();
+        } catch (UiObjectNotFoundException e) {
+            Log.log(TAG, "Couldn't find refresh button");
+        }
+    }
 }
